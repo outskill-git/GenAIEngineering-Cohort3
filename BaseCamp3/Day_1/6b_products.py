@@ -2,7 +2,7 @@ from fastapi import FastAPI
 import uvicorn
 from pydantic import BaseModel, Field
 from fastapi.middleware.cors import CORSMiddleware
-import os, csv
+import os, csv, json
 
 
 # Create FastAPI instance with metadata for documentation
@@ -21,7 +21,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-CSV_FILE = "6a_products.csv"
+CSV_FILE = "/Users/hkale/Outskill AI Workshop/GenAIEngineering-Cohort3/BaseCamp3/Day_1/6a_products.csv"
 
 # Define the data model
 class Record(BaseModel):
@@ -35,6 +35,19 @@ class Record(BaseModel):
 @app.get("/")
 def read_root():
     return {"message": "Simple CSV Record API"}
+
+@app.get("/records/")
+def list_records():
+    """Returns all the records from the csv file"""
+    if not os.path.exists(CSV_FILE):
+        return {"status": "error", "message": "File not found"}
+
+    with open(CSV_FILE, mode='r', newline='') as file:
+        records = []
+        reader = csv.DictReader(file)
+        for row in reader:
+            records.append(row)
+        return {"status": "success", "records": records}
 
 @app.post("/records/")
 def create_record(record: Record):
